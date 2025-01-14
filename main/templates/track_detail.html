@@ -48,38 +48,38 @@
             Your browser does not support the audio element.
         </audio>
         
-        <div class="controls">
+        {% comment %} <div class="controls">
             <button id="prev-button">Previous</button>
             <button id="next-button">Next</button>
-        </div>
+        </div> {% endcomment %}
         <button onclick="window.location.href='{% url 'index' %}'" 
                 style="margin-top: 20px; padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
-            Back to Home
+            Back
         </button>
-        <button onclick="window.location.href='{% url 'add_to_collection' track.id %}'" 
+        {% comment %} <button onclick="window.location.href='{% url 'add_to_collection' track.id %}'" 
             style="margin-top: 20px; padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer;">
             Add to Collection
-        </button>
+        </button> {% endcomment %}
     </div>
-    <script>
+     {% comment %} <script>
         const audioPlayer = document.getElementById('audio-player');
         const tracks = {{ tracks|safe }};
-        let currentIndex = tracks.findIndex(t => t.id === {{ track.id }});
+       // let currentIndex = tracks.findIndex(t => t.id === {{ track.id }});
 
-        document.getElementById('prev-button').addEventListener('click', () => {
+        {% comment %} document.getElementById('prev-button').addEventListener('click', () => {
             currentIndex = (currentIndex - 1 + tracks.length) % tracks.length;
             window.location.href = `/track/${tracks[currentIndex].id}/`;
-        });
+        }); {% endcomment %}
 
-        document.getElementById('next-button').addEventListener('click', () => {
+        {% comment %} document.getElementById('next-button').addEventListener('click', () => {
             currentIndex = (currentIndex + 1) % tracks.length;
             window.location.href = `/track/${tracks[currentIndex].id}/`;
-        });
+        }); {% endcomment %}
 
-        audioPlayer.addEventListener('ended', () => {
+        {% comment %} audioPlayer.addEventListener('ended', () => {
             currentIndex = (currentIndex + 1) % tracks.length;
             window.location.href = `/track/${tracks[currentIndex].id}/`;
-        });
-    </script>
+        }); {% endcomment %}
+      {% comment %} </script>  {% endcomment %}
 </body>
 </html>

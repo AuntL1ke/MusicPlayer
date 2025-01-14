@@ -19,20 +19,55 @@
             justify-content: space-between;
             align-items: center;
         }
+        header form {
+            display: flex;
+            align-items: center;
+        }
+        header input {
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            outline: none;
+            margin-right: 10px;
+            width: 300px;
+        }
+        header button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #ff5722;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        header button:hover {
+            background-color: #e64a19;
+        }
         main {
             padding: 20px;
         }
         .tracks {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
         }
         .track {
             background-color: #333;
             border-radius: 8px;
             padding: 15px;
-            width: 200px;
             text-align: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .track:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        .track img {
+            border-radius: 8px;
+            width: 100%;
+            height: auto;
         }
         #search-results {
             background-color: #282828;
@@ -40,19 +75,29 @@
             padding: 10px;
             border-radius: 8px;
         }
+        #loader {
+            text-align: center;
+            margin: 20px;
+            display: none;
+        }
+        #end-message {
+            text-align: center;
+            margin: 20px;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <header>
         <h1>Hello, {{ user_type }}</h1>
-        <form method="get" action="{% url 'index' %}">
-            <input type="text" name="query" placeholder="Search tracks..." value="{{ query }}" />
+        <form method="get" action="{% url 'index' %}" id="search-form">
+            <input type="text" name="query" id="search-input" placeholder="Search tracks..." value="{{ query }}" />
             <button type="submit">Search</button>
         </form>
     </header>
     <main>
         <h2>Explore Your Favorite Tracks</h2>
-        <div class="tracks">
+        <div id="tracks-container" class="tracks">
             {% for track in page_obj %}
             <div class="track">
                 <img src="{{ track.cover }}" alt="Album Cover">
@@ -65,43 +110,76 @@
             </div>
             {% endfor %}
         </div>
-        
-        
-        
-        <div class="pagination">
-            {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}&query={{ query }}">Previous</a>
-            {% endif %}
-            <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-            {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}&query={{ query }}">Next</a>
-            {% endif %}
-        </div>
+        <div id="loader">Loading...</div>
+        <div id="end-message">No more tracks to load.</div>
     </main>
     <div id="search-results"></div>
 </body>
-<div id="search-results"></div>
+
 <script>
-    document.querySelector('input[name="query"]').addEventListener('input', function() {
-        const query = this.value;
-        if (query.length > 2) {
-            fetch(`/api/search/?query=${query}`)
-                .then(response => response.json())
-                .then(data => {
-                    const resultsContainer = document.getElementById('search-results');
-                    resultsContainer.innerHTML = ''; 
-                    data.results.forEach(track => {
-                        const trackElement = document.createElement('div');
-                        trackElement.innerHTML = `
-                            <a href="/track/${track.id}/?query=${query}" style="color: white; text-decoration: none;">
-                                ${track.title} - ${track.artist}
-                            </a>`;
-                        resultsContainer.appendChild(trackElement);
+    document.addEventListener('DOMContentLoaded', function () {
+        const tracksContainer = document.getElementById('tracks-container');
+        const loader = document.getElementById('loader');
+        const endMessage = document.getElementById('end-message');
+        const searchInput = document.getElementById('search-input');
+        const searchForm = document.getElementById('search-form');
+        let page = 1;
+        let query = "{{ query }}";
+        let isLoading = false;
+        let hasMoreTracks = true;
+
+        searchInput.addEventListener('input', function () {
+            query = searchInput.value;
+            page = 1;
+            tracksContainer.innerHTML = '';
+            hasMoreTracks = true;
+            loadMoreTracks();
+        });
+
+        async function loadMoreTracks() {
+            if (isLoading || !hasMoreTracks) return;
+            isLoading = true;
+            loader.style.display = 'block';
+
+            const response = await fetch(`?page=${page}&query=${query}`);
+            if (response.ok) {
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTracks = doc.querySelectorAll('.track');
+
+                if (newTracks.length === 0) {
+                    hasMoreTracks = false;
+                    endMessage.style.display = 'block';
+                } else {
+                    newTracks.forEach(track => {
+                        tracksContainer.appendChild(track);
                     });
-                });
+                    page++;
+                }
+            } else {
+                hasMoreTracks = false;
+                endMessage.style.display = 'block';
+            }
+
+            loader.style.display = 'none';
+            isLoading = false;
         }
+
+        window.addEventListener('scroll', function () {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100 && hasMoreTracks && !isLoading) {
+                loadMoreTracks();
+            }
+        });
+
+        searchForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            query = searchInput.value;
+            page = 1;
+            tracksContainer.innerHTML = '';
+            hasMoreTracks = true;
+            loadMoreTracks();
+        });
     });
 </script>
-
-
 </html>
