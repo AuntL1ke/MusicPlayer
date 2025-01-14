@@ -6,9 +6,9 @@
     <title>{{ track.title }}</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #1e1e1e;
-            color: white;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e1e1e, #121212);
+            color: #fff;
             margin: 0;
             padding: 0;
         }
@@ -17,24 +17,67 @@
             flex-direction: column;
             align-items: center;
             margin-top: 50px;
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
+            width: 90%;
+            max-width: 600px;
+            margin: 50px auto;
         }
         .player-container img {
-            width: 300px;
-            border-radius: 10px;
+            width: 80%;
+            max-width: 350px;
+            border-radius: 20px;
             margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
         }
-        .controls {
-            display: flex;
-            gap: 20px;
-            margin-top: 20px;
+        .player-container h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #ffdd57;
         }
-        .controls button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
+        .player-container p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #bbb;
+        }
+        audio {
+            width: 100%;
+            margin: 20px 0;
+            border-radius: 10px;
+            background: #222;
+            border: 2px solid #444;
+            outline: none;
+        }
+        audio::-webkit-media-controls-panel {
+            background-color: #222;
+            border-radius: 10px;
+        }
+        audio::-webkit-media-controls-play-button,
+        audio::-webkit-media-controls-timeline {
+            color: #ffdd57;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            font-size: 1rem;
             color: white;
+            text-decoration: none;
+            background: linear-gradient(135deg, #4CAF50, #388E3C);
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(72, 239, 128, 0.6);
+        }
+        .button.back {
+            margin-top: 20px;
+            background: linear-gradient(135deg, #FF5722, #E64A19);
         }
     </style>
 </head>
@@ -47,39 +90,7 @@
             <source src="{{ track.preview }}" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
-        
-        {% comment %} <div class="controls">
-            <button id="prev-button">Previous</button>
-            <button id="next-button">Next</button>
-        </div> {% endcomment %}
-        <button onclick="window.location.href='{% url 'index' %}'" 
-                style="margin-top: 20px; padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
-            Back
-        </button>
-        {% comment %} <button onclick="window.location.href='{% url 'add_to_collection' track.id %}'" 
-            style="margin-top: 20px; padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer;">
-            Add to Collection
-        </button> {% endcomment %}
+        <a href="{% url 'index' %}" class="button back">Back</a>
     </div>
-     {% comment %} <script>
-        const audioPlayer = document.getElementById('audio-player');
-        const tracks = {{ tracks|safe }};
-       // let currentIndex = tracks.findIndex(t => t.id === {{ track.id }});
-
-        {% comment %} document.getElementById('prev-button').addEventListener('click', () => {
-            currentIndex = (currentIndex - 1 + tracks.length) % tracks.length;
-            window.location.href = `/track/${tracks[currentIndex].id}/`;
-        }); {% endcomment %}
-
-        {% comment %} document.getElementById('next-button').addEventListener('click', () => {
-            currentIndex = (currentIndex + 1) % tracks.length;
-            window.location.href = `/track/${tracks[currentIndex].id}/`;
-        }); {% endcomment %}
-
-        {% comment %} audioPlayer.addEventListener('ended', () => {
-            currentIndex = (currentIndex + 1) % tracks.length;
-            window.location.href = `/track/${tracks[currentIndex].id}/`;
-        }); {% endcomment %}
-      {% comment %} </script>  {% endcomment %}
 </body>
 </html>

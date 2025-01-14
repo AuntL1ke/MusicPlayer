@@ -69,21 +69,26 @@
             width: 100%;
             height: auto;
         }
-        #search-results {
-            background-color: #282828;
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 8px;
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
         }
-        #loader {
-            text-align: center;
-            margin: 20px;
-            display: none;
+        .pagination a {
+            color: white;
+            padding: 10px 15px;
+            margin: 0 5px;
+            text-decoration: none;
+            background-color: #333;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
         }
-        #end-message {
-            text-align: center;
-            margin: 20px;
-            display: none;
+        .pagination a:hover {
+            background-color: #ff5722;
+        }
+        .pagination .active {
+            background-color: #ff5722;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -92,7 +97,6 @@
         <h1>Hello, {{ user_type }}</h1>
         <form method="get" action="{% url 'index' %}" id="search-form">
             <input type="text" name="query" id="search-input" placeholder="Search tracks..." value="{{ query }}" />
-            <button type="submit">Search</button>
         </form>
     </header>
     <main>
@@ -110,75 +114,47 @@
             </div>
             {% endfor %}
         </div>
-        <div id="loader">Loading...</div>
-        <div id="end-message">No more tracks to load.</div>
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&query={{ query }}">&laquo; Previous</a>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+                <a href="?page={{ num }}&query={{ query }}" class="{% if page_obj.number == num %}active{% endif %}">{{ num }}</a>
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&query={{ query }}">Next &raquo;</a>
+            {% endif %}
+        </div>
     </main>
-    <div id="search-results"></div>
 </body>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const tracksContainer = document.getElementById('tracks-container');
-        const loader = document.getElementById('loader');
-        const endMessage = document.getElementById('end-message');
         const searchInput = document.getElementById('search-input');
-        const searchForm = document.getElementById('search-form');
-        let page = 1;
-        let query = "{{ query }}";
-        let isLoading = false;
-        let hasMoreTracks = true;
+        const tracksContainer = document.getElementById('tracks-container');
+        const form = document.getElementById('search-form');
+
+        let timeout = null;
 
         searchInput.addEventListener('input', function () {
-            query = searchInput.value;
-            page = 1;
-            tracksContainer.innerHTML = '';
-            hasMoreTracks = true;
-            loadMoreTracks();
-        });
+            clearTimeout(timeout);
 
-        async function loadMoreTracks() {
-            if (isLoading || !hasMoreTracks) return;
-            isLoading = true;
-            loader.style.display = 'block';
+            timeout = setTimeout(() => {
+                const query = searchInput.value;
 
-            const response = await fetch(`?page=${page}&query=${query}`);
-            if (response.ok) {
-                const html = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const newTracks = doc.querySelectorAll('.track');
+                fetch(`?query=${query}`)
+                    .then(response => response.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newTracks = doc.getElementById('tracks-container').innerHTML;
+                        const pagination = doc.querySelector('.pagination').outerHTML;
 
-                if (newTracks.length === 0) {
-                    hasMoreTracks = false;
-                    endMessage.style.display = 'block';
-                } else {
-                    newTracks.forEach(track => {
-                        tracksContainer.appendChild(track);
-                    });
-                    page++;
-                }
-            } else {
-                hasMoreTracks = false;
-                endMessage.style.display = 'block';
-            }
-
-            loader.style.display = 'none';
-            isLoading = false;
-        }
-
-        window.addEventListener('scroll', function () {
-            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100 && hasMoreTracks && !isLoading) {
-                loadMoreTracks();
-            }
-        });
-
-        searchForm.addEventListener('submit', function (event) {
-            event.preventDefault();
-            query = searchInput.value;
-            page = 1;
-            tracksContainer.innerHTML = '';
-            hasMoreTracks = true;
-            loadMoreTracks();
+                        tracksContainer.innerHTML = newTracks;
+                        document.querySelector('.pagination').outerHTML = pagination;
+                    })
+                    .catch(error => console.error('Error:', error));
+            }, 500); // Затримка в 500 мс для оптимізації запитів
         });
     });
 </script>
