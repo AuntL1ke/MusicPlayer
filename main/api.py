@@ -1,0 +1,18 @@
+import requests
+
+def search_tracks(query):
+    url = f"https://api.deezer.com/search?q={query}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        tracks = []
+        for item in data.get('data', []):
+            tracks.append({
+                'id': item['id'],
+                'title': item['title'],
+                'artist': item['artist']['name'],
+                'cover': item['album']['cover_medium'],
+                'preview': item['preview'],
+            })
+        return tracks
+    return []

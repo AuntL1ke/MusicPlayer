@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ track.title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+        .player-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+        }
+        .player-container img {
+            width: 300px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .controls button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <img src="{{ track.cover }}" alt="Album Cover">
+        <h1>{{ track.title }}</h1>
+        <p>Artist: {{ track.artist }}</p>
+        <audio id="audio-player" controls>
+            <source src="{{ track.preview }}" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+        
+        <div class="controls">
+            <button id="prev-button">Previous</button>
+            <button id="next-button">Next</button>
+        </div>
+        <button onclick="window.location.href='{% url 'index' %}'" 
+                style="margin-top: 20px; padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Back to Home
+        </button>
+        <button onclick="window.location.href='{% url 'add_to_collection' track.id %}'" 
+            style="margin-top: 20px; padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Add to Collection
+        </button>
+    </div>
+    <script>
+        const audioPlayer = document.getElementById('audio-player');
+        const tracks = {{ tracks|safe }};
+        let currentIndex = tracks.findIndex(t => t.id === {{ track.id }});
+
+        document.getElementById('prev-button').addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + tracks.length) % tracks.length;
+            window.location.href = `/track/${tracks[currentIndex].id}/`;
+        });
+
+        document.getElementById('next-button').addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % tracks.length;
+            window.location.href = `/track/${tracks[currentIndex].id}/`;
+        });
+
+        audioPlayer.addEventListener('ended', () => {
+            currentIndex = (currentIndex + 1) % tracks.length;
+            window.location.href = `/track/${tracks[currentIndex].id}/`;
+        });
+    </script>
+</body>
+</html>
