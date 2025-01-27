@@ -56,7 +56,7 @@ def search_api(request):
 def index(request):
     query = request.GET.get('query', '')  # Отримуємо запит користувача
     tracks = search_tracks(query)  # Завантажуємо всі треки для обраного запиту
-    paginator = Paginator(tracks, 10)  # Розбиваємо на сторінки (10 треків на сторінку)
+    paginator = Paginator(tracks,10)  # Розбиваємо на сторінки (10 треків на сторінку)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 
@@ -67,11 +67,13 @@ def index(request):
     })
 
 def track_detail(request, track_id):
-    query = request.GET.get('query', '')
-    tracks = search_tracks(query) if query else search_tracks('')  # Завантажуємо всі треки
-    track = next((t for t in tracks if str(t['id']) == str(track_id)), None)  # Порівнюємо як рядки
+    query = request.GET.get('query', '')  # Отримати параметр пошуку
+    tracks = search_tracks(query) if query else search_tracks('')  # Завантаження відповідних треків
+    track = next((t for t in tracks if str(t['id']) == str(track_id)), None)  # Знайти трек за ID
 
     if track:
-        return render(request, 'track_detail.html', {'track': track})
+        return render(request, 'track_detail.html', {'track': track, 'query': query})
 
+    # Якщо трек не знайдено, повернутися на головну
     return redirect('index')
+

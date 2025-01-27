@@ -16,7 +16,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'main',  # Ваш додаток
+    'main',
+    'likes'# Ваш додаток
 ]
 
 MIDDLEWARE = [
